@@ -9,4 +9,10 @@ let fib = fn(x) {
 		}
 	}
 };
-fib(40);
+
+let print = fn(x) {
+	puts(x);
+	puts(fib(12));
+};
+
+print(666);
