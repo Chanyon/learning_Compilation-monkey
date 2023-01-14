@@ -118,8 +118,16 @@ func StartFile(filePath string) {
 		fmt.Printf("reading file error: %s", err)
 	}
 
+	constants := []object.Object{}
+	globals := make([]object.Object, vm.GlobalSize)
+	symbolTable := compiler.NewSymbolTable()
+
+	for i, builtin := range object.Builtins {
+		symbolTable.DefineBuiltin(i, builtin.Name)
+	}
+
 	program := parse(string(data))
-	compiler := compiler.New()
+	compiler := compiler.NewWithState(symbolTable, constants)
 
 	err = compiler.Compile(program)
 
@@ -127,15 +135,15 @@ func StartFile(filePath string) {
 		fmt.Printf("compiler error: %s", err)
 	}
 
-	vm := vm.New(compiler.ByteCode())
+	vm := vm.NewWithGlobalStore(compiler.ByteCode(), globals)
 	err = vm.Run()
 
 	if err != nil {
 		fmt.Printf("vm run failed: %s", err)
 	}
 
-		stackElem := vm.LastPoppedStackElem()
-		fmt.Println(stackElem.Inspect())
+	stackElem := vm.LastPoppedStackElem()
+	fmt.Println(stackElem.Inspect())
 }
 
 func parse(input string) *ast.Program {
