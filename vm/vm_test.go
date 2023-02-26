@@ -533,6 +533,16 @@ func TestRecursiveFibonacci(t *testing.T) {
 	runVmTest(t, tests)
 }
 
+func TestWhileStatement(t *testing.T) {
+	tests := []vmTestCase{
+		{
+			input:    `let foo = 0; while(foo < 2) { let a = 0; let foo = a + 1;} foo;`,
+			expected: 2,
+		},
+	}
+	runVmTest(t, tests)
+}
+
 func runVmTest(t *testing.T, tests []vmTestCase) {
 	t.Helper()
 	for _, tt := range tests {

@@ -80,6 +80,7 @@ const (
 	OpClosure
 	OpGetFreeVar
 	OpCurrnetClosure
+	OpLoop
 )
 
 type Definition struct {
@@ -119,6 +120,7 @@ var definitions = map[Opcode]*Definition{
 	OpClosure:        {"OpClosure", []int{2, 1}}, // index and free var
 	OpGetFreeVar:     {"OpGetFreeVar", []int{1}},
 	OpCurrnetClosure: {"OpCurrnetClosure", []int{}},
+	OpLoop:           {"OpLoop", []int{2}},
 }
 
 func Lookup(op byte) (*Definition, error) {

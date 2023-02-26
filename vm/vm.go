@@ -296,7 +296,9 @@ func (vm *VM) Run() error {
 			if err != nil {
 				return err
 			}
-
+		case code.OpLoop:
+			pos := int(code.ReadUnit16(ins[ip+1:]))
+			vm.currentFrame().ip = pos - 1
 		} //switch end
 		currentFrameLen = len(vm.currentFrame().Instructions()) - 1
 	}

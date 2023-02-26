@@ -12,7 +12,13 @@ let fib = fn(x) {
 
 let print = fn(x) {
 	puts(x);
-	puts(fib(12));
+	puts(fib(22));
 };
 
 print(666);
+
+let a = 0;
+while(a < 4) {
+	let a = a+1; 
+	puts(a);
+}

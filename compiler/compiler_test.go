@@ -855,6 +855,33 @@ func TestRecursiveFun(t *testing.T) {
 	runCompilerTest(t, tests)
 }
 
+func TestWhileStatement(t *testing.T) {
+	tests := []compilerTestCase{
+		{
+			input: `
+				let a = 0;
+				while(1 < 2) {}
+			`,
+			expectedConstants: []interface{}{
+				0,
+				2,
+				1,
+			},
+			expectedInstruction: []code.Instruction{
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpSetGlobal, 0),
+				code.Make(code.OpConstant, 1),
+				code.Make(code.OpConstant, 2),
+				code.Make(code.OpGreaterThan),
+				code.Make(code.OpJumpNotTruthy, 19),
+				code.Make(code.OpLoop, 6),
+			},
+		},
+	}
+
+	runCompilerTest(t, tests)
+}
+
 func runCompilerTest(t *testing.T, tests []compilerTestCase) {
 	t.Helper()
 	for _, tt := range tests {

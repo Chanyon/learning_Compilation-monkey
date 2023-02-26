@@ -38,13 +38,20 @@ func NewEnclosedSymbolTable(outer *SymbolTable) *SymbolTable {
 func (sym *SymbolTable) Define(name string) Symbol {
 	symbol := Symbol{Name: name, Index: sym.numDefinitions}
 
+	// 先查找符号，如果存在，就使用找到符号的索引
+	res, ok := sym.Resolve(name)
+	if ok {
+		symbol.Index = res.Index
+	} else {
+		sym.numDefinitions += 1
+	}
+
 	if sym.Outer == nil {
 		symbol.Scope = GlobalScope
 	} else {
 		symbol.Scope = LocalScope
 	}
 	sym.store[name] = symbol
-	sym.numDefinitions += 1
 
 	return symbol
 }

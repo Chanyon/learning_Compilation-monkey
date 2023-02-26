@@ -101,7 +101,28 @@ func (rs *ReturnStatement) String() string {
 	return out.String()
 }
 
-// let x = 5;
+type WhileStatement struct {
+	Token     token.Token
+	Condition Expression
+	Body      BlockStatement
+}
+
+func (w *WhileStatement) statementNode() {}
+func (w *WhileStatement) TokenLiteral() string {
+	return w.Token.Literal
+}
+func (w *WhileStatement) String() string {
+	var out bytes.Buffer
+	out.WriteString(w.TokenLiteral() + " ")
+	out.WriteString("(")
+	out.WriteString(w.Condition.String())
+	out.WriteString(") {\n")
+	out.WriteString(w.Body.String())
+	out.WriteString("\n}")
+	return out.String()
+}
+
+// 1+5;
 // x+10;
 // fn(x,y){ x+5; };
 // Expression Statement
@@ -256,7 +277,7 @@ func (fl *FunctionLiteral) String() string {
 	// out.WriteString(" ")
 	out.WriteString(fl.TokenLiteral())
 	if fl.Name != "" {
-		out.WriteString(fmt.Sprintf("<%s>",fl.Name))
+		out.WriteString(fmt.Sprintf("<%s>", fl.Name))
 	}
 	out.WriteString("(")
 	out.WriteString(strings.Join(params, ", "))

@@ -28,7 +28,7 @@ type (
 const (
 	_ int = iota
 	LOWEST
-	EQUALS      // ==
+	EQUALS      // == , !=
 	LESSGREATER // > or <
 	SUM         // +,-
 	PRODUCT     // *,/
@@ -388,6 +388,8 @@ func (p *Parser) parserStatement() ast.Statement {
 		return p.parserLetStatement()
 	case token.RETURN:
 		return p.parserReturnStatement()
+	case token.WHILE:
+		return p.parserWhileStatement()
 	default:
 		/* !!5 | !!true | !！false */
 		// if p.curToken.Literal == "!" && p.peekTokenIs(token.BANG) {
@@ -435,6 +437,29 @@ func (p *Parser) parserReturnStatement() *ast.ReturnStatement {
 	return returnStmt
 }
 
+func (p *Parser) parserWhileStatement() *ast.WhileStatement {
+	whileStmt := &ast.WhileStatement{Token: p.curToken}
+
+	if !p.expectPeek(token.LPAREN) {
+		return nil
+	}
+	p.nextToken()
+
+	whileStmt.Condition = p.parserExpression(LOWEST)
+
+	if !p.expectPeek(token.RPAREN) {
+		return nil
+	}
+
+	if !p.expectPeek(token.LBRACE) {
+		return nil
+	}
+
+	whileStmt.Body = *p.parserBlockStatement()
+
+	return whileStmt
+}
+
 func (p *Parser) parserExpressionStatement() *ast.ExpressionStatement {
 	stmt := &ast.ExpressionStatement{Token: p.curToken}
 	stmt.Expression = p.parserExpression(LOWEST)
@@ -460,7 +485,7 @@ func (p *Parser) parserBlockStatement() *ast.BlockStatement {
 	return block
 }
 
-// 沃恩·普拉特解析法(优先级)
+// 沃恩·普拉特优先级解析法
 func (p *Parser) parserExpression(precedence int) ast.Expression {
 	prefix := p.prefixParseFns[p.curToken.Type]
 	if prefix == nil {

@@ -719,7 +719,6 @@ func TestMacroLiteralParsing(t *testing.T) {
 	testInfixExpression(t, bodyStmt.Expression, "x", "+", "y")
 }
 
-
 func TestFunctionLiteralWithName(t *testing.T) {
 	input := `let mfn = fn(){};`
 
@@ -742,7 +741,41 @@ func TestFunctionLiteralWithName(t *testing.T) {
 		t.Fatalf("stmt.Expression is not CallExpression. got=%T", stmt.Value)
 	}
 	if fn.Name != "mfn" {
-		t.Fatalf("function literal name wrong. want='mfn', got='%s'",fn.Name)
+		t.Fatalf("function literal name wrong. want='mfn', got='%s'", fn.Name)
+	}
+}
+
+func TestWhileStatement(t *testing.T) {
+	input := `while (1 < 2) { 4; }`
+	l := lexer.New(input) //token
+	p := New(l)           //parser
+	program := p.ParserProgram()
+	checkParserErrors(t, p)
+
+	if len(program.Statements) != 1 {
+		t.Fatalf("program.Statements does not statements %d got=%d",
+			1, len(program.Statements))
+	}
+
+	stmt, ok := program.Statements[0].(*ast.WhileStatement)
+	if !ok {
+		t.Fatalf("program.Statements[0] is not ast.WhileStatement got='%T'",
+			program.Statements[0])
+	}
+
+	if !testInfixExpression(t, stmt.Condition, 1, "<", 2) {
+		return
+	}
+	if len(stmt.Body.Statements) != 1 {
+		t.Errorf("block is not 1 statement got=%d",
+			len(stmt.Body.Statements))
+	}
+	body, ok := stmt.Body.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("Statements[0] is not ast.ExpressionStatement. got='%T'", body)
+	}
+	if !testIntegerLiteral(t, body.Expression, 4) {
+		return
 	}
 }
 
@@ -769,7 +802,7 @@ func testIntegerLiteral(t *testing.T, il ast.Expression, value int64) bool {
 		return false
 	}
 	if integ.Value != value {
-		t.Errorf("integ.Value not %d got=%d", integ.Value, value)
+		t.Errorf("integ.Value not %d got=%d", value, integ.Value)
 		return false
 	}
 	if integ.TokenLiteral() != fmt.Sprintf("%d", value) {

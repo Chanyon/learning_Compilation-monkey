@@ -332,6 +332,23 @@ func (c *Compiler) Compile(node ast.Node) error {
 		}
 
 		c.emit(code.OpCall, len(node.Arguments))
+	case *ast.WhileStatement:
+		loopStart := len(c.currentInstructions())
+
+		err := c.Compile(node.Condition)
+		if err != nil {
+			return err
+		}
+		jumpNotPos := c.emit(code.OpJumpNotTruthy, 9999)
+
+		err = c.Compile(&node.Body)
+		if err != nil {
+			return err
+		}
+		c.emit(code.OpLoop, loopStart)
+		afterPos := len(c.currentInstructions())
+		c.changeOperand(jumpNotPos, afterPos)
+
 	} //switch end
 	return nil
 }
