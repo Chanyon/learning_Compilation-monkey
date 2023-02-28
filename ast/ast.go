@@ -122,6 +122,29 @@ func (w *WhileStatement) String() string {
 	return out.String()
 }
 
+type AssignExpression struct {
+	// Token token.Token
+	Name  *Identifier
+	Value Expression
+}
+
+func (assign *AssignExpression) statementNode()  {}
+func (assign *AssignExpression) expressionNode() {}
+func (assign *AssignExpression) TokenLiteral() string {
+	return assign.Name.TokenLiteral()
+}
+func (assign *AssignExpression) String() string {
+	var out bytes.Buffer
+	out.WriteString(assign.Name.String())
+	out.WriteString(" = ")
+
+	if assign.Value != nil {
+		out.WriteString(assign.Value.String())
+	}
+	out.WriteString(";")
+	return out.String()
+}
+
 // 1+5;
 // x+10;
 // fn(x,y){ x+5; };

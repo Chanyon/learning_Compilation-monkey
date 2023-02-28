@@ -882,6 +882,58 @@ func TestWhileStatement(t *testing.T) {
 	runCompilerTest(t, tests)
 }
 
+func TestAssignExpression(t *testing.T) {
+	tests := []compilerTestCase{
+		{
+			input: `
+				let a = 1;
+				a = 2;
+				a;
+			`,
+			expectedConstants: []interface{}{
+				1,
+				2,
+			},
+			expectedInstruction: []code.Instruction{
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpSetGlobal, 0),
+				code.Make(code.OpConstant, 1),
+				code.Make(code.OpSetGlobal, 0),
+				code.Make(code.OpGetGlobal, 0),
+				code.Make(code.OpPop),
+			},
+		},
+		{
+			input: `
+				let a = 0;
+				a = 1;
+				let foo = fn(b) {
+					a = b;
+				};
+			`,
+			expectedConstants: []interface{}{
+				0,
+				1,
+				[]code.Instruction{
+					code.Make(code.OpGetLocal, 0),
+					code.Make(code.OpSetGlobal, 0),
+					code.Make(code.OpReturn),
+				},
+			},
+			expectedInstruction: []code.Instruction{
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpSetGlobal, 0),
+				code.Make(code.OpConstant, 1),
+				code.Make(code.OpSetGlobal, 0),
+				code.Make(code.OpClosure, 2),
+				code.Make(code.OpSetGlobal, 1),
+			},
+		},
+	}
+
+	runCompilerTest(t, tests)
+}
+
 func runCompilerTest(t *testing.T, tests []compilerTestCase) {
 	t.Helper()
 	for _, tt := range tests {

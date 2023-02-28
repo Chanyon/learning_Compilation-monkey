@@ -35,6 +35,7 @@ func TestNextToken(t *testing.T) {
 	{"foo":"bar"};
 	macro(x,y){x+y;};
 	while;
+	foo = 1;
 	`
 	// "1.123";
 	tests := []struct {
@@ -163,6 +164,10 @@ func TestNextToken(t *testing.T) {
 		{token.RBRACE, "}"},
 		{token.SEMICOLON, ";"},
 		{token.WHILE, "while"},
+		{token.SEMICOLON, ";"},
+		{token.IDENT, "foo"},
+		{token.ASSIGN, "="},
+		{token.INT, "1"},
 		{token.SEMICOLON, ";"},
 		{token.EOF, ""},
 	}

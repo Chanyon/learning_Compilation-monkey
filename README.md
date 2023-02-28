@@ -11,6 +11,7 @@
 - 表达式(1+1,1<1, 1!=1, 1==1...)
 - return语句
 - if语句
+- 赋值
 - 函数
 - 高阶函数
 - 内置函数 
@@ -51,17 +52,16 @@ a; // 1
 ```
 let f = fn(x){ return 1;};
 f(2); // 1
+
+let a = 0;
+a = 1;
+puts(a); // 1
 ```
 
 
 ### TODO
 - 赋值语句
 ```
-源代码->Token->AST->Eval
-let foo = 1;
-foo = "bar";
-puts(foo); // bar
-
 let arr = [1,2,3];
 arr[0] = 3;
 arr[0]; // 3

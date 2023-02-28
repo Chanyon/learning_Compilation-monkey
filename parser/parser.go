@@ -105,7 +105,16 @@ func (p *Parser) registerInfix(tokenType token.TokenType, fn infixParseFn) {
 
 // 关联解析函数
 func (p *Parser) parserIdentifier() ast.Expression {
-	return &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
+	ident := &ast.Identifier{Token: p.curToken, Value: p.curToken.Literal}
+	assignExpression := &ast.AssignExpression{}
+	assignExpression.Name = ident
+	if p.peekTokenIs(token.ASSIGN) {
+		p.nextToken()
+		p.nextToken()
+		assignExpression.Value = p.parserExpression(LOWEST)
+		return assignExpression
+	}
+	return ident
 }
 
 func (p *Parser) parserIntegerLiteral() ast.Expression {
@@ -525,7 +534,7 @@ func (p *Parser) curTokenIs(t token.TokenType) bool {
 
 // 没找到解析函数时错误
 func (p *Parser) noPrefixFnError(t token.TokenType) {
-	msg := fmt.Sprintf("no prefix parse function for %s found", t)
+	msg := fmt.Sprintf("prefix parse function for %s not found", t)
 	p.errors = append(p.errors, msg)
 }
 

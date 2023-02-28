@@ -779,6 +779,37 @@ func TestWhileStatement(t *testing.T) {
 	}
 }
 
+func TestAssignStatement(t *testing.T) {
+	input := `foo = 6;`
+	l := lexer.New(input) //token
+	p := New(l)           //parser
+	program := p.ParserProgram()
+	checkParserErrors(t, p)
+
+	if len(program.Statements) != 1 {
+		t.Fatalf("program.Statements does not statements %d got=%d",
+			1, len(program.Statements))
+	}
+
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("program.Statements[0] is not ast.AssignStatement got='%T'",
+			program.Statements[0])
+	}
+
+	exp, ok := stmt.Expression.(*ast.AssignExpression)
+	if !ok {
+		t.Fatalf("expression is not ast.AssignExpression got='%T'",
+			exp)
+	}
+	if !testIdentifier(t, exp.Name, "foo") {
+		return
+	}
+	if !testIntegerLiteral(t, exp.Value, 4) {
+		return
+	}
+}
+
 // 辅助函数
 func testLiteralExpression(t *testing.T, exp ast.Expression, expected interface{}) bool {
 	switch v := expected.(type) {

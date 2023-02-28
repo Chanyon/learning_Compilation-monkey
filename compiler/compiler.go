@@ -84,7 +84,10 @@ func (c *Compiler) Compile(node ast.Node) error {
 			return err
 		}
 		c.emit(code.OpPop)
-
+		_, ok := node.Expression.(*ast.AssignExpression)
+		if ok {
+			c.removeLastOpPop()
+		}
 	case *ast.InfixExpression:
 		if node.Operator == "<" {
 			err := c.Compile(node.Right)
@@ -348,7 +351,19 @@ func (c *Compiler) Compile(node ast.Node) error {
 		c.emit(code.OpLoop, loopStart)
 		afterPos := len(c.currentInstructions())
 		c.changeOperand(jumpNotPos, afterPos)
+	case *ast.AssignExpression:
+		symbol := c.symbolTable.Define(node.Name.Value)
 
+		err := c.Compile(node.Value)
+		if err != nil {
+			return err
+		}
+
+		if symbol.Scope == GlobalScope {
+			c.emit(code.OpSetGlobal, symbol.Index)
+		} else {
+			c.emit(code.OpSetLocal, symbol.Index)
+		}
 	} //switch end
 	return nil
 }

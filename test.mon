@@ -19,6 +19,10 @@ print(666);
 
 let a = 0;
 while(a < 4) {
-	let a = a+1; 
+	a = a+1; 
 	puts(a);
 }
+
+let a = 0;
+a = 1;
+puts(a);

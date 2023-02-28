@@ -543,6 +543,34 @@ func TestWhileStatement(t *testing.T) {
 	runVmTest(t, tests)
 }
 
+func TestAssignExpression(t *testing.T) {
+	tests := []vmTestCase{
+		{
+			input:    `let foo = 0; foo = 2; foo;`,
+			expected: 2,
+		},
+		{
+			input:    `let a = 0; let fun = fn(){ a = 3;} fun(); a;`,
+			expected: 3,
+		},
+		{
+			input: `
+				let a = 0; 
+				let fun = fn(c){ 
+					let bar = fn(c) { 
+						a = c;
+					};
+					return bar;
+				};
+				fun(3)(4);
+				a;
+			`,
+			expected: 3,
+		},
+	}
+	runVmTest(t, tests)
+}
+
 func runVmTest(t *testing.T, tests []vmTestCase) {
 	t.Helper()
 	for _, tt := range tests {
