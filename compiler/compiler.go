@@ -344,7 +344,7 @@ func (c *Compiler) Compile(node ast.Node) error {
 		}
 		jumpNotPos := c.emit(code.OpJumpNotTruthy, 9999)
 
-		err = c.Compile(&node.Body)
+		err = c.Compile(node.Body)
 		if err != nil {
 			return err
 		}
@@ -364,6 +364,44 @@ func (c *Compiler) Compile(node ast.Node) error {
 		} else {
 			c.emit(code.OpSetLocal, symbol.Index)
 		}
+	case *ast.ForStatement:
+		// loopStart := len(c.currentInstructions()) 
+		loopStart := 0
+		// c.enterScope()
+		err := c.Compile(node.LetStmt)
+		if err != nil {
+			return err
+		}
+		letEndPos := len(c.currentInstructions())
+
+		err = c.Compile(node.Condition)
+		if err != nil {
+			return err
+		}
+		jumpNotPos := c.emit(code.OpJumpNotTruthy, 9999)
+		jumpPos := c.emit(code.OpJump, 9999)
+		
+		incStart := len(c.currentInstructions())
+
+		err = c.Compile(node.Inc)
+		if err != nil {
+			return err
+		}
+		c.emit(code.OpLoop, loopStart+letEndPos)
+		incEnd := len(c.currentInstructions())
+		c.changeOperand(jumpPos, incEnd+loopStart)
+
+		err = c.Compile(node.Body)
+		if err != nil {
+			return err
+		}
+		c.emit(code.OpLoop, incStart+loopStart)
+		jumpNotEndPos := len(c.currentInstructions())
+		c.changeOperand(jumpNotPos, jumpNotEndPos+loopStart)
+		
+		// instruction := c.leaveScope()
+		// c.scopes[c.scopeIndex].instruction = append(c.scopes[c.scopeIndex].instruction, instruction...)
+		// fmt.Println(instruction)
 	} //switch end
 	return nil
 }

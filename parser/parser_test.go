@@ -810,6 +810,57 @@ func TestAssignStatement(t *testing.T) {
 	}
 }
 
+func TestForStatement(t *testing.T) {
+	input := `for (let a = 1; 1 < 2; a = 2) { 3; }`
+	l := lexer.New(input) //token
+	p := New(l)           //parser
+	program := p.ParserProgram()
+	checkParserErrors(t, p)
+
+	if len(program.Statements) != 1 {
+		t.Fatalf("program.Statements does not statements %d got=%d",
+			1, len(program.Statements))
+	}
+
+	stmt, ok := program.Statements[0].(*ast.ForStatement)
+	if !ok {
+		t.Fatalf("program.Statements[0] is not ast.ForStatement got='%T'",
+			program.Statements[0])
+	}
+	if !testIdentifier(t, stmt.LetStmt.Name, "a") {
+		return
+	}
+	if !testIntegerLiteral(t, stmt.LetStmt.Value, 1) {
+		return
+	}
+	if !testInfixExpression(t, stmt.Condition, 1, "<", 2) {
+		return
+	}
+
+	exp, ok := stmt.Inc.Expression.(*ast.AssignExpression)
+	if !ok {
+		t.Fatalf("expression is not ast.AssignExpression got='%T'",
+			exp)
+	}
+	if !testIdentifier(t, exp.Name, "a") {
+		return
+	}
+	if !testIntegerLiteral(t, exp.Value, 2) {
+		return
+	}
+	if len(stmt.Body.Statements) != 1 {
+		t.Errorf("block is not 1 statement got=%d",
+			len(stmt.Body.Statements))
+	}
+	body, ok := stmt.Body.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("Statements[0] is not ast.ExpressionStatement. got='%T'", body)
+	}
+	if !testIntegerLiteral(t, body.Expression, 3) {
+		return
+	}
+}
+
 // 辅助函数
 func testLiteralExpression(t *testing.T, exp ast.Expression, expected interface{}) bool {
 	switch v := expected.(type) {

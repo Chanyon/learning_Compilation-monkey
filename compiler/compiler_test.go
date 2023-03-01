@@ -934,6 +934,75 @@ func TestAssignExpression(t *testing.T) {
 	runCompilerTest(t, tests)
 }
 
+func TestForStatement(t *testing.T) {
+	tests := []compilerTestCase{
+		// {
+		// 	input: `
+		// 		for(let a = 0; 1 > 2; a = a + 1) {
+		// 			3;
+		// 		}
+		// 	`,
+		// 	expectedConstants: []interface{}{
+		// 		0,
+		// 		1,
+		// 		2,
+		// 		1,
+		// 		3,
+		// 	},
+		// 	expectedInstruction: []code.Instruction{
+		// 		code.Make(code.OpConstant, 0),
+		// 		code.Make(code.OpSetLocal, 0),
+		// 		code.Make(code.OpConstant, 1),
+		// 		code.Make(code.OpConstant, 2),
+		// 		code.Make(code.OpGreaterThan),
+		// 		code.Make(code.OpJumpNotTruthy, 36),
+		// 		code.Make(code.OpJump, 29),
+		// 		code.Make(code.OpGetLocal, 0),
+		// 		code.Make(code.OpConstant, 3),
+		// 		code.Make(code.OpAdd),
+		// 		code.Make(code.OpSetLocal, 0),
+		// 		code.Make(code.OpJump, 5),
+		// 		code.Make(code.OpConstant, 4),
+		// 		code.Make(code.OpPop),
+		// 		code.Make(code.OpLoop, 18),
+		// 	},
+		// },
+		{
+			input: `
+				for(let a = 0; a > 2; a = a + 1) {
+					puts(a);
+				}
+			`,
+			expectedConstants: []interface{}{
+				0,
+				2,
+				1,
+			},
+			expectedInstruction: []code.Instruction{
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpSetGlobal, 0),
+				code.Make(code.OpGetGlobal, 0),
+				code.Make(code.OpConstant, 1),
+				code.Make(code.OpGreaterThan),
+				code.Make(code.OpJumpNotTruthy, 43),
+				code.Make(code.OpJump, 32),
+				code.Make(code.OpGetGlobal, 0),
+				code.Make(code.OpConstant, 2),
+				code.Make(code.OpAdd),
+				code.Make(code.OpSetGlobal, 0),
+				code.Make(code.OpLoop, 6),
+				code.Make(code.OpGetBuiltin, 1),
+				code.Make(code.OpGetGlobal, 0),
+				code.Make(code.OpCall, 1),
+				code.Make(code.OpPop),
+				code.Make(code.OpLoop, 19),
+			},
+		},
+	}
+
+	runCompilerTest(t, tests)
+}
+
 func runCompilerTest(t *testing.T, tests []compilerTestCase) {
 	t.Helper()
 	for _, tt := range tests {

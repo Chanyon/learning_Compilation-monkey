@@ -26,3 +26,5 @@ while(a < 4) {
 let a = 0;
 a = 1;
 puts(a);
+
+for(let a = 0; a < 3; a = a + 1) { puts(a); }

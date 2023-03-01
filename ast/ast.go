@@ -104,7 +104,7 @@ func (rs *ReturnStatement) String() string {
 type WhileStatement struct {
 	Token     token.Token
 	Condition Expression
-	Body      BlockStatement
+	Body      *BlockStatement
 }
 
 func (w *WhileStatement) statementNode() {}
@@ -142,6 +142,33 @@ func (assign *AssignExpression) String() string {
 		out.WriteString(assign.Value.String())
 	}
 	out.WriteString(";")
+	return out.String()
+}
+
+type ForStatement struct {
+	Token     token.Token
+	LetStmt   *LetStatement
+	Condition Expression
+	Inc       *ExpressionStatement
+	Body      *BlockStatement
+}
+
+func (f *ForStatement) statementNode() {}
+func (f *ForStatement) TokenLiteral() string {
+	return f.Token.Literal
+}
+func (f *ForStatement) String() string {
+	var out bytes.Buffer
+	out.WriteString(f.TokenLiteral() + " ")
+	out.WriteString("(")
+	out.WriteString(f.LetStmt.String())
+	out.WriteString(";")
+	out.WriteString(f.Condition.String())
+	out.WriteString(";")
+	out.WriteString(f.Inc.String())
+	out.WriteString(") {\n")
+	out.WriteString(f.Body.String())
+	out.WriteString("\n}")
 	return out.String()
 }
 

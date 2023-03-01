@@ -571,6 +571,16 @@ func TestAssignExpression(t *testing.T) {
 	runVmTest(t, tests)
 }
 
+func TestForStatement(t *testing.T) {
+	tests := []vmTestCase{
+		{
+			input:    `let b = 0; for(let a = 0; a < 3; a = a + 1) { puts(a); b = a; } b;`,
+			expected: 2,
+		},
+	}
+	runVmTest(t, tests)
+}
+
 func runVmTest(t *testing.T, tests []vmTestCase) {
 	t.Helper()
 	for _, tt := range tests {

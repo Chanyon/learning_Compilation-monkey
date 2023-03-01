@@ -399,6 +399,8 @@ func (p *Parser) parserStatement() ast.Statement {
 		return p.parserReturnStatement()
 	case token.WHILE:
 		return p.parserWhileStatement()
+	case token.FOR:
+		return p.parserForStatement()
 	default:
 		/* !!5 | !!true | !！false */
 		// if p.curToken.Literal == "!" && p.peekTokenIs(token.BANG) {
@@ -464,9 +466,44 @@ func (p *Parser) parserWhileStatement() *ast.WhileStatement {
 		return nil
 	}
 
-	whileStmt.Body = *p.parserBlockStatement()
+	whileStmt.Body = p.parserBlockStatement()
 
 	return whileStmt
+}
+
+func (p *Parser) parserForStatement() *ast.ForStatement {
+	forStmt := &ast.ForStatement{Token: p.curToken}
+
+	if !p.expectPeek(token.LPAREN) {
+		return nil
+	}
+	p.nextToken()
+	forStmt.LetStmt = p.parserLetStatement()
+	// if !p.expectPeek(token.SEMICOLON) {
+	// 	return nil
+	// }
+	p.nextToken() //skip `;`
+	forStmt.Condition = p.parserExpression(LOWEST)
+
+	if !p.expectPeek(token.SEMICOLON) {
+		return nil
+	}
+	p.nextToken() //skip `;`
+
+	forStmt.Inc = p.parserExpressionStatement()
+
+	if !p.expectPeek(token.RPAREN) {
+		return nil
+	}
+
+	if !p.expectPeek(token.LBRACE) {
+		return nil
+	}
+	//        {
+	//current ^
+	forStmt.Body = p.parserBlockStatement()
+
+	return forStmt
 }
 
 func (p *Parser) parserExpressionStatement() *ast.ExpressionStatement {
