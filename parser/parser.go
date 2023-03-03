@@ -26,15 +26,15 @@ type (
 
 // 区分优先级
 const (
-	_ int = iota
-	LOWEST
-	EQUALS      // == , !=
-	LESSGREATER // > or <
-	SUM         // +,-
-	PRODUCT     // *,/
-	PREFIX      // -X or !X
-	CALL        // myFunction(X)
-	INDEX       //array[index]
+	_           int = iota
+	LOWEST          // =
+	EQUALS          // == , !=
+	LESSGREATER     // > or < | <= or >=
+	SUM             // +,-
+	PRODUCT         // *,/
+	PREFIX          // -X or !X
+	CALL            // myFunction(X)
+	INDEX           //array[index]
 )
 
 // 优先级表
@@ -43,6 +43,8 @@ var precedence = map[token.TokenType]int{
 	token.NOT_EQ:   EQUALS,
 	token.LT:       LESSGREATER,
 	token.GT:       LESSGREATER,
+	token.LTQ:      LESSGREATER,
+	token.GTQ:      LESSGREATER,
 	token.PLUS:     SUM,
 	token.MINUS:    SUM,
 	token.SLASH:    PRODUCT,
@@ -84,6 +86,8 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerInfix(token.NOT_EQ, p.parserInfixExpression)
 	p.registerInfix(token.LT, p.parserInfixExpression)
 	p.registerInfix(token.GT, p.parserInfixExpression)
+	p.registerInfix(token.LTQ, p.parserInfixExpression)
+	p.registerInfix(token.GTQ, p.parserInfixExpression)
 	p.registerInfix(token.LPAREN, p.parserCallExpression)
 	p.registerInfix(token.LBRACKET, p.parserIndexExpression)
 

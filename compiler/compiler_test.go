@@ -106,12 +106,34 @@ func TestBooleanExpressions(t *testing.T) {
 			},
 		},
 		{
+			input:             "1 >= 2",
+			expectedConstants: []interface{}{1, 2},
+			expectedInstruction: []code.Instruction{
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpConstant, 1),
+				code.Make(code.OpLessThan),
+				code.Make(code.OpBang),
+				code.Make(code.OpPop),
+			},
+		},
+		{
 			input:             "1 < 2",
-			expectedConstants: []interface{}{2, 1},
+			expectedConstants: []interface{}{1, 2},
+			expectedInstruction: []code.Instruction{
+				code.Make(code.OpConstant, 0),
+				code.Make(code.OpConstant, 1),
+				code.Make(code.OpLessThan),
+				code.Make(code.OpPop),
+			},
+		},
+		{
+			input:             "1 <= 2",
+			expectedConstants: []interface{}{1, 2},
 			expectedInstruction: []code.Instruction{
 				code.Make(code.OpConstant, 0),
 				code.Make(code.OpConstant, 1),
 				code.Make(code.OpGreaterThan),
+				code.Make(code.OpBang),
 				code.Make(code.OpPop),
 			},
 		},
@@ -864,15 +886,15 @@ func TestWhileStatement(t *testing.T) {
 			`,
 			expectedConstants: []interface{}{
 				0,
-				2,
 				1,
+				2,
 			},
 			expectedInstruction: []code.Instruction{
 				code.Make(code.OpConstant, 0),
 				code.Make(code.OpSetGlobal, 0),
 				code.Make(code.OpConstant, 1),
 				code.Make(code.OpConstant, 2),
-				code.Make(code.OpGreaterThan),
+				code.Make(code.OpLessThan),
 				code.Make(code.OpJumpNotTruthy, 19),
 				code.Make(code.OpLoop, 6),
 			},

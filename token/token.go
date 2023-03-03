@@ -25,7 +25,9 @@ const (
 	BANG     = "!"
 	ASTERISK = "*"
 	LT       = "<"
+	LTQ      = "<="
 	GT       = ">"
+	GTQ      = ">="
 	EQ       = "=="
 	NOT_EQ   = "!="
 	// 分隔符

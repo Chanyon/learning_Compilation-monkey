@@ -44,6 +44,8 @@ if(true){ 1 };
 if(false){ 1 }else{ 2 };
 if(1 < 2){ 1 }
 if(1+1 > 1){ 2 }
+if(1+1 >= 1){ 2 }
+if(1+1 <= 1){ 2 }
 
 let a = if(true){ 1 };
 a; // 1

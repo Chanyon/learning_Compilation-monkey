@@ -89,19 +89,6 @@ func (c *Compiler) Compile(node ast.Node) error {
 			c.removeLastOpPop()
 		}
 	case *ast.InfixExpression:
-		if node.Operator == "<" {
-			err := c.Compile(node.Right)
-			if err != nil {
-				return err
-			}
-			err = c.Compile(node.Left)
-			if err != nil {
-				return err
-			}
-			c.emit(code.OpGreaterThan)
-			return nil
-		}
-
 		err := c.Compile(node.Left)
 		if err != nil {
 			return err
@@ -120,12 +107,20 @@ func (c *Compiler) Compile(node ast.Node) error {
 			c.emit(code.OpMul)
 		case "/":
 			c.emit(code.OpDiv)
+		case "<":
+			c.emit(code.OpLessThan)
 		case ">":
 			c.emit(code.OpGreaterThan)
 		case "==":
 			c.emit(code.OpEqual)
 		case "!=":
 			c.emit(code.OpNotEqual)
+		case "<=":
+			c.emit(code.OpGreaterThan)
+			c.emit(code.OpBang)
+		case ">=":
+			c.emit(code.OpLessThan)
+			c.emit(code.OpBang)
 		default:
 			return fmt.Errorf("unknown operator %s", node.Operator)
 		}
@@ -365,7 +360,7 @@ func (c *Compiler) Compile(node ast.Node) error {
 			c.emit(code.OpSetLocal, symbol.Index)
 		}
 	case *ast.ForStatement:
-		// loopStart := len(c.currentInstructions()) 
+		// loopStart := len(c.currentInstructions())
 		loopStart := 0
 		// c.enterScope()
 		err := c.Compile(node.LetStmt)
@@ -380,7 +375,7 @@ func (c *Compiler) Compile(node ast.Node) error {
 		}
 		jumpNotPos := c.emit(code.OpJumpNotTruthy, 9999)
 		jumpPos := c.emit(code.OpJump, 9999)
-		
+
 		incStart := len(c.currentInstructions())
 
 		err = c.Compile(node.Inc)
@@ -398,7 +393,7 @@ func (c *Compiler) Compile(node ast.Node) error {
 		c.emit(code.OpLoop, incStart+loopStart)
 		jumpNotEndPos := len(c.currentInstructions())
 		c.changeOperand(jumpNotPos, jumpNotEndPos+loopStart)
-		
+
 		// instruction := c.leaveScope()
 		// c.scopes[c.scopeIndex].instruction = append(c.scopes[c.scopeIndex].instruction, instruction...)
 		// fmt.Println(instruction)

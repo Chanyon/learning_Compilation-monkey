@@ -59,7 +59,8 @@ const (
 	OpFalse
 	OpEqual       // ==
 	OpNotEqual    // !=
-	OpGreaterThan // > <
+	OpGreaterThan // >
+	OpLessThan    // <
 	// OpLessThan <
 	OpMinus // -
 	OpBang  // !
@@ -121,6 +122,7 @@ var definitions = map[Opcode]*Definition{
 	OpGetFreeVar:     {"OpGetFreeVar", []int{1}},
 	OpCurrnetClosure: {"OpCurrnetClosure", []int{}},
 	OpLoop:           {"OpLoop", []int{2}},
+	OpLessThan:       {"OpLessThan", []int{}},
 }
 
 func Lookup(op byte) (*Definition, error) {
