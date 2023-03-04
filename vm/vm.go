@@ -168,6 +168,27 @@ func (vm *VM) Run() error {
 			if !isTruthy(condition) {
 				vm.currentFrame().ip = pos - 1
 			}
+		case code.OpAnd:
+			pos := int(code.ReadUnit16(ins[ip+1:]))
+			vm.currentFrame().ip += 2
+
+			condition := vm.pop()
+			if !isTruthy(condition) {
+				vm.currentFrame().ip = pos - 1
+				vm.push(condition)
+			}
+		case code.OpOr:
+			pos := int(code.ReadUnit16(ins[ip+1:]))
+			vm.currentFrame().ip += 2
+
+			condition := vm.pop()
+			if !isTruthy(condition) {
+				// skip Jump指令
+				vm.currentFrame().ip = pos - 1
+			} else {
+				// 如果值为真， 重新入栈
+				vm.push(condition)
+			}
 		case code.OpNull:
 			err := vm.push(Null)
 			if err != nil {

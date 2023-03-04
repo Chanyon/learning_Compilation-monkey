@@ -39,6 +39,8 @@ func TestNextToken(t *testing.T) {
 	for;
 	<=;
 	>=;
+	&&;
+	||;
 	`
 	// "1.123";
 	tests := []struct {
@@ -177,6 +179,10 @@ func TestNextToken(t *testing.T) {
 		{token.LTQ, "<="},
 		{token.SEMICOLON, ";"},
 		{token.GTQ, ">="},
+		{token.SEMICOLON, ";"},
+		{token.AND, "&&"},
+		{token.SEMICOLON, ";"},
+		{token.OR, "||"},
 		{token.SEMICOLON, ";"},
 		{token.EOF, ""},
 	}

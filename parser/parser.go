@@ -28,6 +28,7 @@ type (
 const (
 	_           int = iota
 	LOWEST          // =
+	ANDOR           // && ||
 	EQUALS          // == , !=
 	LESSGREATER     // > or < | <= or >=
 	SUM             // +,-
@@ -52,6 +53,8 @@ var precedence = map[token.TokenType]int{
 	token.BANG:     PREFIX,
 	token.LPAREN:   CALL,
 	token.LBRACKET: INDEX,
+	token.AND:      ANDOR,
+	token.OR:       ANDOR,
 }
 
 func New(l *lexer.Lexer) *Parser {
@@ -90,7 +93,8 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerInfix(token.GTQ, p.parserInfixExpression)
 	p.registerInfix(token.LPAREN, p.parserCallExpression)
 	p.registerInfix(token.LBRACKET, p.parserIndexExpression)
-
+	p.registerInfix(token.AND, p.parserInfixExpression)
+	p.registerInfix(token.OR, p.parserInfixExpression)
 	// group expression; let a = (1+2)*3;
 	p.registerPrefix(token.LPAREN, p.parserGroupExpression)
 

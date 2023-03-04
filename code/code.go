@@ -61,10 +61,9 @@ const (
 	OpNotEqual    // !=
 	OpGreaterThan // >
 	OpLessThan    // <
-	// OpLessThan <
-	OpMinus // -
-	OpBang  // !
-	OpJump  // jump
+	OpMinus       // -
+	OpBang        // !
+	OpJump        // jump
 	OpJumpNotTruthy
 	OpNull
 	OpSetGlobal
@@ -82,6 +81,8 @@ const (
 	OpGetFreeVar
 	OpCurrnetClosure
 	OpLoop
+	OpAnd // &&
+	OpOr  // ||
 )
 
 type Definition struct {
@@ -123,6 +124,8 @@ var definitions = map[Opcode]*Definition{
 	OpCurrnetClosure: {"OpCurrnetClosure", []int{}},
 	OpLoop:           {"OpLoop", []int{2}},
 	OpLessThan:       {"OpLessThan", []int{}},
+	OpAnd:            {"OpAnd", []int{2}},
+	OpOr:             {"OpOr", []int{2}},
 }
 
 func Lookup(op byte) (*Definition, error) {

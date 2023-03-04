@@ -178,6 +178,38 @@ func TestBooleanExpressions(t *testing.T) {
 			},
 		},
 		{
+			input:             "true && true",
+			expectedConstants: []interface{}{},
+			expectedInstruction: []code.Instruction{
+				code.Make(code.OpTrue),
+				code.Make(code.OpAnd, 5),
+				code.Make(code.OpTrue),
+				code.Make(code.OpPop),
+			},
+		},
+		{
+			input:             "true || false",
+			expectedConstants: []interface{}{},
+			expectedInstruction: []code.Instruction{
+				code.Make(code.OpTrue),
+				code.Make(code.OpOr, 7),
+				code.Make(code.OpJump, 8),
+				code.Make(code.OpFalse),
+				code.Make(code.OpPop),
+			},
+		},
+		{
+			input:             "false || true",
+			expectedConstants: []interface{}{},
+			expectedInstruction: []code.Instruction{
+				code.Make(code.OpFalse),
+				code.Make(code.OpOr, 7),
+				code.Make(code.OpJump, 8),
+				code.Make(code.OpTrue),
+				code.Make(code.OpPop),
+			},
+		},
+		{
 			input:             "!true",
 			expectedConstants: []interface{}{},
 			expectedInstruction: []code.Instruction{

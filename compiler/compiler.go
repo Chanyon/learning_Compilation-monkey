@@ -89,6 +89,40 @@ func (c *Compiler) Compile(node ast.Node) error {
 			c.removeLastOpPop()
 		}
 	case *ast.InfixExpression:
+		if node.Operator == "&&" {
+			err := c.Compile(node.Left)
+			if err != nil {
+				return err
+			}
+			endJump := c.emit(code.OpAnd, 9999)
+
+			err = c.Compile(node.Right)
+			if err != nil {
+				return err
+			}
+			afterPos := len(c.currentInstructions())
+			c.changeOperand(endJump, afterPos)
+			return nil
+		}
+
+		if node.Operator == "||" {
+			err := c.Compile(node.Left)
+			if err != nil {
+				return err
+			}
+			elseJump := c.emit(code.OpOr, 9999)
+			endJump := c.emit(code.OpJump, 9999)
+			afterPos := len(c.currentInstructions())
+			c.changeOperand(elseJump, afterPos)
+			err = c.Compile(node.Right)
+			if err != nil {
+				return err
+			}
+			afterPos = len(c.currentInstructions())
+			c.changeOperand(endJump, afterPos)
+			return nil
+		}
+
 		err := c.Compile(node.Left)
 		if err != nil {
 			return err

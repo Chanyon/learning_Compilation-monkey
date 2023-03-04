@@ -30,6 +30,8 @@ const (
 	GTQ      = ">="
 	EQ       = "=="
 	NOT_EQ   = "!="
+	AND      = "&&"
+	OR       = "||"
 	// 分隔符
 	COMMA     = ","
 	SEMICOLON = ";"

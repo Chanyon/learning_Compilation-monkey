@@ -212,7 +212,8 @@ func evalInfixExpression(
 
 	case operator == "!=":
 		return nativeBoolToBooleanObject(left != right)
-
+	case operator == "&&" || operator == "||":
+		return evalBooleanInfixExpression(operator, left, right)
 	case left.Type() != right.Type():
 		return newError("type mismatch: %s %s %s", left.Type(), operator, right.Type())
 	default:
@@ -249,6 +250,24 @@ func evalIntegerInfixExpression(
 		return nativeBoolToBooleanObject(leftValue != rightValue)
 	case "==":
 		return nativeBoolToBooleanObject(leftValue == rightValue)
+	default:
+		return newError("unknown operator: %s %s %s", left.Type(), operator, right.Type())
+	}
+}
+
+func evalBooleanInfixExpression(
+	operator string,
+	left object.Object,
+	right object.Object,
+) object.Object {
+	leftValue := left.(*object.Boolean).Value
+	rightValue := right.(*object.Boolean).Value
+
+	switch operator {
+	case "&&":
+		return nativeBoolToBooleanObject(leftValue && rightValue)
+	case "||":
+		return nativeBoolToBooleanObject(leftValue || rightValue)
 	default:
 		return newError("unknown operator: %s %s %s", left.Type(), operator, right.Type())
 	}

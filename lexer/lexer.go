@@ -78,6 +78,20 @@ func (l *Lexer) NextToken() token.Token {
 		} else {
 			tok = token.NewToken(token.GT, l.ch)
 		}
+	case '&':
+		if l.peekChar() == '&' {
+			ch := l.ch
+			l.readChar()
+			literal := string(ch) + string(l.ch)
+			tok = token.Token{Type: token.AND, Literal: literal}
+		}
+	case '|':
+		if l.peekChar() == '|' {
+			ch := l.ch
+			l.readChar()
+			literal := string(ch) + string(l.ch)
+			tok = token.Token{Type: token.OR, Literal: literal}
+		}
 	case '!':
 		if l.peekChar() == '=' {
 			ch := l.ch

@@ -209,6 +209,8 @@ func TestParsingInfixExpressions(t *testing.T) {
 		{"foo != bar", "foo", "!=", "bar"},
 		{"true == true", true, "==", true},
 		{"true != false", true, "!=", false},
+		{"true && true", true, "&&", true},
+		{"true || false", true, "||", false},
 	}
 	for _, tt := range infixTests {
 		l := lexer.New(tt.input)
@@ -287,6 +289,10 @@ func TestOperatorPrecedenceParsing(t *testing.T) {
 			"add((((a + b) + ((c * d) / f)) + g))"},
 		{"a * [1,2,3,4][b*c] * d", "((a * ([1, 2, 3, 4][(b * c)])) * d)"},
 		{"add(a*b[2],b[1],2*[1,2][1])", "add((a * (b[2])), (b[1]), (2 * ([1, 2][1])))"},
+		{"(1 == 2) && (1 >= 2)", "((1 == 2) && (1 >= 2))"},
+		{"1 == 2 && 1 >= 2", "((1 == 2) && (1 >= 2))"},
+		{"(1 > 2) || (1 >= 2)", "((1 > 2) || (1 >= 2))"},
+		{"1 < 2 || 1 >= 2", "((1 < 2) || (1 >= 2))"},
 	}
 	for _, tt := range tests {
 		l := lexer.New(tt.input)
@@ -807,7 +813,7 @@ func TestAssignStatement(t *testing.T) {
 	if !testIdentifier(t, exp.Name, "foo") {
 		return
 	}
-	if !testIntegerLiteral(t, exp.Value, 4) {
+	if !testIntegerLiteral(t, exp.Value, 6) {
 		return
 	}
 }
