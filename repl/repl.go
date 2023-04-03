@@ -6,12 +6,14 @@ import (
 	"io"
 	"io/ioutil"
 	"monkey/ast"
+	"monkey/codegen"
 	"monkey/compiler"
 	"monkey/evaluator"
 	"monkey/lexer"
 	"monkey/object"
 	"monkey/parser"
 	"monkey/vm"
+	"strings"
 )
 
 const PROMPT = ">>"
@@ -144,6 +146,31 @@ func StartFile(filePath string) {
 
 	stackElem := vm.LastPoppedStackElem()
 	fmt.Println(stackElem.Inspect())
+}
+
+func StartWriteFile(filePath string) {
+	data, err := ioutil.ReadFile(filePath)
+	if err != nil {
+		fmt.Printf("reading file error: %s", err)
+	}
+
+	program := parse(string(data))
+	cg := codegen.New()
+	cg.FreeAllRegisters()
+
+	cg.CgPreamble()
+	reg := cg.CodeGenAST(program)
+	fmt.Println(reg)
+	if reg == -1 {
+		fmt.Printf("compiler error: %s", err)
+		return
+	}
+	cg.CgPrintInt(reg)
+	cg.CgPostamble()
+
+	content := strings.Join(cg.Assembly, "")
+	fmt.Println(content)
+	codegen.WriteFile("out.s", content)
 }
 
 func parse(input string) *ast.Program {
