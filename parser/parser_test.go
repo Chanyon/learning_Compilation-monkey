@@ -485,6 +485,35 @@ func TestFunctionParameterParsing(t *testing.T) {
 	}
 }
 
+func TestClassLiteral(t *testing.T) {
+	input := `class {
+			let bar = fn(){ 1 };
+		};`
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParserProgram()
+	checkParserErrors(t, p)
+
+	if len(program.Statements) != 1 {
+		t.Fatalf("program.Statements does not contain %d statements. got='%d'",
+			1, len(program.Statements))
+	}
+	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("program.Statements[0] is not ast.ExpressionStatement. got=%T",
+			program.Statements[0])
+	}
+	class, ok := stmt.Expression.(*ast.ClassLiteral)
+	if !ok {
+		t.Fatalf("stmt.Expression is not ast.ClassLiteral. got=%T", stmt.Expression)
+	}
+
+	if len(class.Body.Statements) != 1 {
+		t.Fatalf("class.Body.Statements does not contain %d statements. got='%d'",
+			1, len(class.Body.Statements))
+	}
+}
+
 func TestCallExpressionParsing(t *testing.T) {
 	input := `add(1, 2*3, 4+5);`
 

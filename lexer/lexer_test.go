@@ -41,6 +41,8 @@ func TestNextToken(t *testing.T) {
 	>=;
 	&&;
 	||;
+	class
+	this
 	`
 	// "1.123";
 	tests := []struct {
@@ -184,6 +186,8 @@ func TestNextToken(t *testing.T) {
 		{token.SEMICOLON, ";"},
 		{token.OR, "||"},
 		{token.SEMICOLON, ";"},
+		{token.CLASS, "class"},
+		{token.THIS, "this"},
 		{token.EOF, ""},
 	}
 	l := New(input)

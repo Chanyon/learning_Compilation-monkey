@@ -338,6 +338,35 @@ func (fl *FunctionLiteral) String() string {
 	return out.String()
 }
 
+//	let NOW = class {
+//		let init = fn () { puts(1); };
+//	};
+//
+// let now = NOW();
+type ClassLiteral struct {
+	Token token.Token     // token CLASS
+	Body  *BlockStatement // block statement
+	Name  string          // let binding  name
+}
+
+func (class *ClassLiteral) expressionNode() {}
+func (class *ClassLiteral) TokenLiteral() string {
+	return class.Token.Literal
+}
+func (class *ClassLiteral) String() string {
+	var out bytes.Buffer
+
+	out.WriteString(" ")
+	out.WriteString(class.TokenLiteral())
+	if class.Name != "" {
+		out.WriteString(fmt.Sprintf("<%s>", class.Name))
+	}
+	out.WriteString("{ ")
+	out.WriteString(class.Body.String())
+	out.WriteString(" }")
+	return out.String()
+}
+
 // callExpression
 type CallExpression struct {
 	Token     token.Token

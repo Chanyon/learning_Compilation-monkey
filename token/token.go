@@ -53,6 +53,8 @@ const (
 	MACRO    = "MACRO"
 	WHILE    = "WHILE"
 	FOR      = "FOR"
+	CLASS    = "CLASS"
+	THIS     = "THIS"
 )
 
 var keywords = map[string]TokenType{
@@ -66,6 +68,8 @@ var keywords = map[string]TokenType{
 	"macro":  MACRO,
 	"while":  WHILE,
 	"for":    FOR,
+	"class":  CLASS,
+	"this":   THIS,
 }
 
 func NewToken(tokenType TokenType, ch byte) Token {

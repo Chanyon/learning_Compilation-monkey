@@ -71,6 +71,7 @@ func New(l *lexer.Lexer) *Parser {
 	p.registerPrefix(token.LBRACKET, p.parserArrayLiteral)
 	p.registerPrefix(token.LBRACE, p.parserHashLiteral)
 	p.registerPrefix(token.MACRO, p.parserMacroLiteral)
+	p.registerPrefix(token.CLASS, p.parserClassLiteral)
 	// 前缀解析函数
 	p.registerPrefix(token.BANG, p.parserPrefixExpression)
 	p.registerPrefix(token.MINUS, p.parserPrefixExpression)
@@ -280,6 +281,15 @@ func (p *Parser) parserCallArguments() []ast.Expression {
 	return args
 }
 
+func (p *Parser) parserClassLiteral() ast.Expression {
+	class := &ast.ClassLiteral{Token: p.curToken}
+	if !p.expectPeek(token.LBRACE) {
+		return nil
+	}
+	class.Body = p.parserBlockStatement()
+	return class
+}
+
 func (p *Parser) parserStringLiteral() ast.Expression {
 	return &ast.StringLiteral{Token: p.curToken, Value: p.curToken.Literal}
 }
@@ -435,6 +445,10 @@ func (p *Parser) parserLetStatement() *ast.LetStatement {
 	stmt.Value = p.parserExpression(LOWEST)
 	if fn, ok := stmt.Value.(*ast.FunctionLiteral); ok {
 		fn.Name = stmt.Name.Value
+	}
+
+	if class, ok := stmt.Value.(*ast.ClassLiteral); ok {
+		class.Name = stmt.Name.Value
 	}
 
 	if p.peekTokenIs(token.SEMICOLON) {
