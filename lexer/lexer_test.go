@@ -24,13 +24,13 @@ func TestNextToken(t *testing.T) {
 	"foo";
 	"bar";
 	"foo bar";
-	"test"e,";
-	"test2\'\'";
+	"test\"e,";
+	"test2''";
 	"te\n\rst";
-	"test3";q;";
-	"test"";
+	"test3\";q;";
+	"test\"";
 	"test";
-	"test";,";
+	"test\";,";
 	[1,2];
 	{"foo":"bar"};
 	macro(x,y){x+y;};
@@ -128,21 +128,21 @@ func TestNextToken(t *testing.T) {
 		{token.SEMICOLON, ";"},
 		{token.STRING, "foo bar"},
 		{token.SEMICOLON, ";"},
-		{token.STRING, "test\"e,"},
+		{token.STRING, "test\\\"e,"},
 		{token.SEMICOLON, ";"},
-		{token.STRING, "test2\\'\\'"},
+		{token.STRING, "test2''"},
 		{token.SEMICOLON, ";"},
 		{token.STRING, "te\\n\\rst"},
 		{token.SEMICOLON, ";"},
-		{token.STRING, "test3\";q;"},
+		{token.STRING, "test3\\\";q;"},
 		{token.SEMICOLON, ";"},
-		{token.STRING, "test\""},
+		{token.STRING, "test\\\""},
 		{token.SEMICOLON, ";"},
 		{token.STRING, "test"},
 		{token.SEMICOLON, ";"},
 		// {token.STRING, "1.123"},
 		// {token.SEMICOLON, ";"},
-		{token.STRING, "test\";,"},
+		{token.STRING, "test\\\";,"},
 		{token.SEMICOLON, ";"},
 		{token.LBRACKET, "["},
 		{token.INT, "1"},

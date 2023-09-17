@@ -169,14 +169,14 @@ func (l *Lexer) readString() string {
 	position := l.position + 1
 	for {
 		l.readChar()
-		if l.ch == '"' && (l.checkChar(l.peekChar()) && l.checkChar(l.peekLetter())) && l.peekLetter() != '"' {
+		if l.ch == '\\' && (l.peekChar() == '"' || l.peekChar() == '\'') {
+			l.readChar()
 			continue
-		} else if l.ch == '\t' || l.ch == '\n' || l.ch == '\r' {
+		} else if l.ch == '\t' || l.ch == '\n' || l.ch == '\r' || l.ch == ' ' {
 			continue
-		} else if l.ch == '"' || l.ch == 0 || (l.ch == '"' && l.peekChar() == ';') {
+		} else if l.ch == 0 || l.ch == '"' {
 			break
 		} else {
-			// l.readChar()
 			continue
 		}
 	}
@@ -206,7 +206,7 @@ func (l *Lexer) peekChar() byte {
 func (l *Lexer) checkChar(ch byte) bool {
 	return isLetter(ch) || isDigit(ch) || ch == '-' || ch == ',' ||
 		ch == '_' || l.ch == '\\' || ch == '/' || ch == '.' ||
-		ch == '+' || ch == '`' || ch == '?' || ch == '~' || ch == '"' || ch == ';'
+		ch == '+' || ch == '`' || ch == '?' || ch == '~' || ch == ';'
 }
 
 func (l *Lexer) peekLetter() byte {
