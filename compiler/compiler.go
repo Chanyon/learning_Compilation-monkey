@@ -20,8 +20,8 @@ type EmittedInstruction struct {
 // 引入作用域, 解决函数字节码与主程序的字节码指令纠缠问题
 type CompilationScope struct {
 	instruction         code.Instruction
-	lastInstruction     EmittedInstruction
-	previousInstruction EmittedInstruction
+	lastInstruction     EmittedInstruction // 最后一条指令
+	previousInstruction EmittedInstruction // 倒数第二条
 }
 
 type CompilerCtx struct {
@@ -33,10 +33,7 @@ type CompilerCtx struct {
 }
 
 type Compiler struct {
-	// instructions        code.Instruction
-	constants []object.Object
-	// lastInstruction     EmittedInstruction // 最后一条指令
-	// previousInstruction EmittedInstruction // 倒数第二条
+	constants   []object.Object
 	symbolTable *SymbolTable //符号表, 保存、处理变量
 	scopes      []CompilationScope
 	scopeIndex  int
@@ -286,11 +283,7 @@ func (c *Compiler) Compile(node ast.Node) error {
 		if !ok {
 			return fmt.Errorf("undefined variable `%s`", node.Value)
 		}
-		// if symbol.Scope == GlobalScope {
-		// 	c.emit(code.OpGetGlobal, symbol.Index)
-		// } else {
-		// 	c.emit(code.OpGetLocal, symbol.Index)
-		// }
+
 		c.loadSymbol(symbol)
 	case *ast.StringLiteral:
 		str := &object.String{Value: node.Value}
@@ -565,9 +558,6 @@ func (c *Compiler) lastInstructionIs(op code.Opcode) bool {
 }
 
 func (c *Compiler) removeLastOpPop() {
-	// c.instructions = c.instructions[:c.lastInstruction.Position]
-	//reset lastInstruction
-	// c.lastInstruction = c.previousInstruction
 	last := c.scopes[c.scopeIndex].lastInstruction
 	prev := c.scopes[c.scopeIndex].previousInstruction
 
@@ -578,16 +568,13 @@ func (c *Compiler) removeLastOpPop() {
 }
 
 func (c *Compiler) changeOperand(opPos int, operand int) {
-	// op := code.Opcode(c.instructions[opPos])
+
 	op := code.Opcode(c.currentInstructions()[opPos])
 	newInstruction := code.Make(op, operand)
 	c.replaceInstruction(opPos, newInstruction)
 }
 
 func (c *Compiler) replaceInstruction(opPos int, newInstruction []byte) {
-	// for i := 0; i < len(newInstruction); i++ {
-	// 	c.instructions[opPos+i] = newInstruction[i]
-	// }
 	ins := c.currentInstructions()
 	for i := 0; i < len(newInstruction); i++ {
 		ins[opPos+i] = newInstruction[i]
