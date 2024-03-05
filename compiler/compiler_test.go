@@ -292,9 +292,9 @@ func TestGlobalLetStatements(t *testing.T) {
 			expectedConstants: []interface{}{1, 2},
 			expectedInstruction: []code.Instruction{
 				code.Make(code.OpConstant, 0),
-				code.Make(code.OpSetGlobal, 0),
+				code.Make(code.OpSetGlobal, 0, 0),
 				code.Make(code.OpConstant, 1),
-				code.Make(code.OpSetGlobal, 1),
+				code.Make(code.OpSetGlobal, 0, 1),
 			},
 		},
 		{
@@ -302,7 +302,7 @@ func TestGlobalLetStatements(t *testing.T) {
 			expectedConstants: []interface{}{1},
 			expectedInstruction: []code.Instruction{
 				code.Make(code.OpConstant, 0),
-				code.Make(code.OpSetGlobal, 0),
+				code.Make(code.OpSetGlobal, 0, 0),
 				code.Make(code.OpGetGlobal, 0),
 				code.Make(code.OpPop),
 			},
@@ -312,9 +312,9 @@ func TestGlobalLetStatements(t *testing.T) {
 			expectedConstants: []interface{}{1},
 			expectedInstruction: []code.Instruction{
 				code.Make(code.OpConstant, 0),
-				code.Make(code.OpSetGlobal, 0),
+				code.Make(code.OpSetGlobal, 0.0),
 				code.Make(code.OpGetGlobal, 0),
-				code.Make(code.OpSetGlobal, 1),
+				code.Make(code.OpSetGlobal, 0, 1),
 				code.Make(code.OpGetGlobal, 0),
 				code.Make(code.OpPop),
 			},
@@ -324,8 +324,14 @@ func TestGlobalLetStatements(t *testing.T) {
 			expectedConstants: []interface{}{1},
 			expectedInstruction: []code.Instruction{
 				code.Make(code.OpConstant, 0),
-				code.Make(code.OpSetGlobal, 0),
+				code.Make(code.OpSetGlobal, 0, 0),
 			},
+		},
+		{
+			input: "let a = [0,1,2]; a[2] = 5; a[2];",
+			// input:             `let a = 1, a = 2; a;`,
+			expectedConstants:   []interface{}{1},
+			expectedInstruction: []code.Instruction{},
 		},
 	}
 
@@ -1050,6 +1056,45 @@ func TestForStatement(t *testing.T) {
 				code.Make(code.OpCall, 1),
 				code.Make(code.OpPop),
 				code.Make(code.OpLoop, 19),
+			},
+		},
+	}
+
+	runCompilerTest(t, tests)
+}
+
+func TestClassStatement(t *testing.T) {
+	tests := []compilerTestCase{
+		{
+			input: `
+				class Foo {
+					this.a = 1;
+					this.b = 2;
+					let bar = fn() {
+						return 1;
+					};
+				}
+				let foo = Foo();
+				foo.bar();
+				foo.a;
+				foo.b;
+			`,
+			expectedConstants: []interface{}{
+				1,
+				[]code.Instruction{
+					code.Make(code.OpConstant, 0),
+					code.Make(code.OpReturnValue),
+				},
+			},
+			expectedInstruction: []code.Instruction{
+				code.Make(code.OpClass),
+				code.Make(code.OpDefineClass, 0),
+				code.Make(code.OpMethod, 1),
+				code.Make(code.OpSetGlobal, 1),
+				code.Make(code.OpPop),
+				code.Make(code.OpGetGlobal, 0),
+				code.Make(code.OpCall, 0),
+				code.Make(code.OpSetGlobal, 2),
 			},
 		},
 	}

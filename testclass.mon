@@ -1,0 +1,8 @@
+class Cat {
+  let bar = fn() {
+    puts("cat");
+  };
+}
+
+let cat = Cat();
+cat.bar();

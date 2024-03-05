@@ -83,6 +83,11 @@ const (
 	OpLoop
 	OpAnd // &&
 	OpOr  // ||
+	OpClass
+	OpMethod
+	OpDefineClass
+	OpSetProperty
+	OpGetProperty
 )
 
 type Definition struct {
@@ -108,7 +113,7 @@ var definitions = map[Opcode]*Definition{
 	OpJumpNotTruthy:  {"OpJumpNotTruthy", []int{2}},
 	OpJump:           {"OpJump", []int{2}},
 	OpNull:           {"OpNull", []int{}},
-	OpSetGlobal:      {"OpSetGlobal", []int{2}},
+	OpSetGlobal:      {"OpSetGlobal", []int{1, 2}},
 	OpGetGlobal:      {"OpGetGlobal", []int{2}},
 	OpArray:          {"OpArray", []int{2}}, //! 65535个数组元素 u16
 	OpHash:           {"OpHash", []int{2}},
@@ -126,7 +131,18 @@ var definitions = map[Opcode]*Definition{
 	OpLessThan:       {"OpLessThan", []int{}},
 	OpAnd:            {"OpAnd", []int{2}},
 	OpOr:             {"OpOr", []int{2}},
+	OpClass:          {"OpClass", []int{}},
+	OpMethod:         {"OpMethod", []int{2, 1}},
+	OpDefineClass:    {"OpDefineClass", []int{2}},
+	OpSetProperty:    {"OpSetProperty", []int{2}},
+	OpGetProperty:    {"OpGetProperty", []int{2}},
 }
+
+const (
+	SetTypeVar byte = iota
+	SetTypeArray
+	SetTypeHash
+)
 
 func Lookup(op byte) (*Definition, error) {
 	def, ok := definitions[Opcode(op)]

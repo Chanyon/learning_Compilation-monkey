@@ -195,10 +195,31 @@ func (vm *VM) Run() error {
 				return err
 			}
 		case code.OpSetGlobal:
-			globalIndex := code.ReadUnit16(ins[ip+1:])
-			vm.currentFrame().ip += 2
+			set_type := code.ReadUnit8(ins[ip+1:])
+			globalIndex := code.ReadUnit16(ins[ip+2:])
+			vm.currentFrame().ip += 3
 
-			vm.globals[globalIndex] = vm.pop()
+			if set_type == code.SetTypeVar {
+				vm.globals[globalIndex] = vm.pop()
+			}
+
+			if set_type == code.SetTypeArray {
+				set_value := vm.pop()
+				index_obj := vm.pop()
+
+				switch index_obj.Type() {
+				case object.ARRAY_OBJ:
+					index := index_obj.(*object.Integer).Value
+					err := vm.setArrayIndex(globalIndex, index, set_value)
+					if err != nil {
+						return err
+					}
+				}
+			}
+		// case code.OpDefineClass:
+		// 	globalIndex := code.ReadUnit16(ins[ip+1:])
+		// 	vm.currentFrame().ip += 2
+		// 	vm.globals[globalIndex] = vm.peek(-1)
 		case code.OpGetGlobal:
 			globalIndex := code.ReadUnit16(ins[ip+1:])
 			vm.currentFrame().ip += 2
@@ -320,6 +341,23 @@ func (vm *VM) Run() error {
 		case code.OpLoop:
 			pos := int(code.ReadUnit16(ins[ip+1:]))
 			vm.currentFrame().ip = pos - 1
+
+			// case code.OpClass:
+			// 	class := &object.Class{}
+			// 	vm.push(class)
+			// 	vm.currentFrame().ip += 1
+			// case code.OpMethod:
+			// 	pos := code.ReadUnit16(ins[ip+1:])
+			// 	freeVars := code.ReadUnit16(ins[ip+3:])
+			// 	vm.currentFrame().ip += 3
+			// 	value := vm.peek(-1)
+			// 	class, ok := value.(*object.Class)
+			// 	if !ok {
+			// 		return fmt.Errorf("not a class!->%s", class.Name)
+			// 	}
+			// 	vm.pushClosure(pos, uint16(freeVars))
+			// 	class.Methods[class.Name] = vm.peek(-1)
+			// 	vm.pop()
 		} //switch end
 		currentFrameLen = len(vm.currentFrame().Instructions()) - 1
 	}
@@ -336,9 +374,14 @@ func (vm *VM) push(obj object.Object) error {
 }
 
 func (vm *VM) pop() object.Object {
-	// fmt.Println("vm.pop() -> vm.sp: ", vm.sp)
 	obj := vm.stack[vm.sp-1]
+	fmt.Println("vm.pop() -> vm.sp: ", obj)
 	vm.sp -= 1
+	return obj
+}
+
+func (vm *VM) peek(idx int) object.Object {
+	obj := vm.stack[int(vm.sp)+idx]
 	return obj
 }
 
@@ -537,6 +580,37 @@ func (vm *VM) executeHashIndex(left, index object.Object) error {
 	}
 
 	return vm.push(pair.Value)
+}
+
+func (vm *VM) setArrayIndex(global_index uint16, index int64, set_value object.Object) error {
+	array := vm.globals[global_index].(*object.Array)
+	length := len(array.ELements)
+	maxLen := int64(length - 1)
+	if index < 0 || index > maxLen {
+		return fmt.Errorf("index out of range[%d] with %d", 0xffffffff, index)
+	}
+
+	newElements := make([]object.Object, length)
+	copy(newElements, array.ELements)
+
+	newElements[uint16(index)] = set_value
+	vm.globals[global_index] = &object.Array{ELements: newElements}
+
+	return nil
+}
+
+func (vm *VM) setHashIndex(left, key, new_value object.Object, index uint16) error {
+	hash := left.(*object.Hash)
+	key_, ok := key.(object.HashAble)
+
+	if !ok {
+		return fmt.Errorf("unusable as hash key: %s", key.Type())
+	}
+
+	hash.Pairs[key_.HashKey()] = object.HashPair{Key: key, Value: new_value}
+	vm.globals[index] = hash
+
+	return nil
 }
 
 func (vm *VM) executeCall(numArgs uint8) error {

@@ -14,7 +14,7 @@ type CodeGen struct {
 
 func New() *CodeGen {
 	return &CodeGen{
-		regList: []string{"%r8", "%r9", "%r10", "%r11"},
+		regList: []string{"r8", "r9", "r10", "r11"},
 	}
 }
 
@@ -65,12 +65,12 @@ func (cg *CodeGen) Load(value int64) int {
 		fmt.Println("Out of register!")
 		os.Exit(0)
 	}
-	cg.Assembly = append(cg.Assembly, fmt.Sprintf("\tmovq\t$%d, %s\n", value, cg.regList[r]))
+	cg.Assembly = append(cg.Assembly, fmt.Sprintf("\tmov\t%s, %d\n", cg.regList[r], value))
 	return r
 }
 
 func (cg *CodeGen) Add(r1 int, r2 int) int {
-	cg.Assembly = append(cg.Assembly, fmt.Sprintf("\t\taddq\t%s, %s\n", cg.regList[r1], cg.regList[r2]))
+	cg.Assembly = append(cg.Assembly, fmt.Sprintf("\tadd\t%s, %s\n", cg.regList[r2], cg.regList[r1]))
 	cg.freeRegister(r1)
 	return r2
 }
@@ -98,35 +98,35 @@ func (cg *CodeGen) freeRegister(reg int) {
 
 func (cg *CodeGen) CgPreamble() {
 	preamble := `
-	.text
-.LC0:
-	.string	"%d\n"
+	global	main
+	extern	printf
+	section	.text
+LC0:	db	"%d",10,0
 printint:
-	pushq	%rbp
-	movq	%rsp, %rbp
-	subq	$16, %rsp
-	movl	%edi, -4(%rbp)
-	movl	-4(%rbp), %eax
-	movl	%eax, %esi
-	leaq	.LC0(%rip), %rdi
-	movl	$0, %eax
-	call	printf@PLT
+	push	rbp
+	mov	rbp, rsp
+	sub	rsp, 16
+	mov	[rbp-4], edi
+	mov	eax, [rbp-4]
+	mov	esi, eax
+	lea	rdi, [rel LC0]
+	mov	eax, 0
+	call	printf
 	nop
 	leave
 	ret
-	.globl	main
-	.type		main, @function
+
 main:
-	pushq	%rbp
-	movq	%rsp, %rbp
+	push	rbp
+	mov		rbp, rsp
 	`
 	cg.Assembly = append(cg.Assembly, preamble)
 }
 
 func (cg *CodeGen) CgPostamble() {
 	postamble := `
-	movl $0, %eax
-	popq %rbp
+	mov eax,	0
+	pop rbp
 	ret
 
 	`
@@ -134,5 +134,5 @@ func (cg *CodeGen) CgPostamble() {
 }
 
 func (cg *CodeGen) CgPrintInt(reg int) {
-	cg.Assembly = append(cg.Assembly, fmt.Sprintf("\tmovq\t%s, %%rdi\n\tcall\tprintint\n", cg.regList[reg]))
+	cg.Assembly = append(cg.Assembly, fmt.Sprintf("\tmov\trdi,	%s\n\tcall\tprintint", cg.regList[reg]))
 }

@@ -32,7 +32,8 @@ func TestAssignStatement(t *testing.T) {
 			&ExpressionStatement{
 				Token: token.Token{Type: token.IDENT, Literal: "foo"},
 				Expression: &AssignExpression{
-					Name: &Identifier{
+					Token: token.Token{Type: token.IDENT, Literal: "foo"},
+					Left: &Identifier{
 						Token: token.Token{Type: token.IDENT, Literal: "foo"},
 						Value: "foo",
 					},

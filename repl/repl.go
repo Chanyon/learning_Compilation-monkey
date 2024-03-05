@@ -144,8 +144,8 @@ func StartFile(filePath string) {
 		fmt.Printf("vm run failed: %s", err)
 	}
 
-	stackElem := vm.LastPoppedStackElem()
-	fmt.Println(stackElem.Inspect())
+	// stackElem := vm.LastPoppedStackElem()
+	// fmt.Println(stackElem.Inspect())
 }
 
 func StartWriteFile(filePath string) {

@@ -587,6 +587,36 @@ func TestForStatement(t *testing.T) {
 	runVmTest(t, tests)
 }
 
+func TestAssignExpressionStatement(t *testing.T) {
+	tests := []vmTestCase{
+		// {
+		// 	input:    `let b = 1; b = b + 2; b;`,
+		// 	expected: 3,
+		// },
+		{
+			input:    `let a = [0,1,2]; a[1]`,
+			expected: 5,
+		},
+	}
+	runVmTest(t, tests)
+}
+
+func TestClassStatement(t *testing.T) {
+	tests := []vmTestCase{
+		{
+			input: `class Cat {
+				let bar = fn() {
+					puts("cat");
+				};
+			}
+			let cat = Cat();
+			`,
+			expected: nil,
+		},
+	}
+	runVmTest(t, tests)
+}
+
 func runVmTest(t *testing.T, tests []vmTestCase) {
 	t.Helper()
 	for _, tt := range tests {

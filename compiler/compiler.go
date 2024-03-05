@@ -5,6 +5,7 @@ import (
 	"monkey/ast"
 	"monkey/code"
 	"monkey/object"
+	"monkey/token"
 	"sort"
 )
 
@@ -23,6 +24,14 @@ type CompilationScope struct {
 	previousInstruction EmittedInstruction
 }
 
+type CompilerCtx struct {
+	isCompClass bool
+	infixAssign bool
+	infixDot    bool
+	index       int
+	// hasExtends  bool
+}
+
 type Compiler struct {
 	// instructions        code.Instruction
 	constants []object.Object
@@ -31,6 +40,7 @@ type Compiler struct {
 	symbolTable *SymbolTable //符号表, 保存、处理变量
 	scopes      []CompilationScope
 	scopeIndex  int
+	compilerCtx *CompilerCtx
 }
 
 type ByteCode struct {
@@ -54,6 +64,7 @@ func New() *Compiler {
 		symbolTable: symbolTable,
 		scopes:      []CompilationScope{mainScope},
 		scopeIndex:  0,
+		compilerCtx: &CompilerCtx{isCompClass: false, index: -1, infixAssign: false},
 	}
 }
 
@@ -123,9 +134,17 @@ func (c *Compiler) Compile(node ast.Node) error {
 			return nil
 		}
 
+		if node.Operator == token.ASSIGN {
+			c.compilerCtx.infixAssign = true
+		}
+
 		err := c.Compile(node.Left)
 		if err != nil {
 			return err
+		}
+
+		if node.Operator == token.DOT {
+			c.compilerCtx.infixDot = true
 		}
 		err = c.Compile(node.Right)
 		if err != nil {
@@ -155,6 +174,16 @@ func (c *Compiler) Compile(node ast.Node) error {
 		case ">=":
 			c.emit(code.OpLessThan)
 			c.emit(code.OpBang)
+		// case "=":
+		// 	// this.foo = 1;
+		// 	if c.compilerCtx.index >= 0 && c.compilerCtx.infixDot {
+		// 		c.emit(code.OpSetProperty, c.compilerCtx.index)
+		// 	}
+		// 	c.compilerCtx.infixAssign = false
+		// 	c.compilerCtx.index = -1
+		// case ".":
+		// 	// foo.a
+		// 	c.compilerCtx.infixDot = false
 		default:
 			return fmt.Errorf("unknown operator %s", node.Operator)
 		}
@@ -168,6 +197,8 @@ func (c *Compiler) Compile(node ast.Node) error {
 		} else {
 			c.emit(code.OpFalse)
 		}
+	// case *ast.ThisLiteral:
+	// c.compilerCtx.infixDot = true
 	case *ast.PrefixExpression:
 		err := c.Compile(node.Right)
 		if err != nil {
@@ -246,7 +277,7 @@ func (c *Compiler) Compile(node ast.Node) error {
 		}
 
 		if symbol.Scope == GlobalScope {
-			c.emit(code.OpSetGlobal, symbol.Index)
+			c.emit(code.OpSetGlobal, int(code.SetTypeVar), symbol.Index)
 		} else {
 			c.emit(code.OpSetLocal, symbol.Index)
 		}
@@ -306,6 +337,7 @@ func (c *Compiler) Compile(node ast.Node) error {
 		}
 
 		c.emit(code.OpIndex)
+
 	case *ast.FunctionLiteral:
 		c.enterScope()
 
@@ -340,10 +372,17 @@ func (c *Compiler) Compile(node ast.Node) error {
 			Instructions:  instruction,
 			NumLocals:     numLocals,
 			NumParameters: len(node.Parameters),
+			Name:          node.Name,
 		}
 		// c.emit(code.OpConstant, c.addConstant(compiledFn))
 		constantFnIndex := c.addConstant(compiledFn)
-		c.emit(code.OpClosure, constantFnIndex, len(freeSymbols))
+
+		if c.compilerCtx.isCompClass {
+			c.emit(code.OpMethod, constantFnIndex, len(freeSymbols))
+		} else {
+			c.emit(code.OpClosure, constantFnIndex, len(freeSymbols))
+		}
+
 	case *ast.ReturnStatement:
 		err := c.Compile(node.ReturnValue)
 		if err != nil {
@@ -381,7 +420,21 @@ func (c *Compiler) Compile(node ast.Node) error {
 		afterPos := len(c.currentInstructions())
 		c.changeOperand(jumpNotPos, afterPos)
 	case *ast.AssignExpression:
-		symbol := c.symbolTable.Define(node.Name.Value)
+		var symbol Symbol
+		var set_type byte
+		switch child_node := node.Left.(type) {
+		case *ast.Identifier:
+			symbol = c.symbolTable.Define(child_node.Value)
+			set_type = code.SetTypeVar
+		case *ast.IndexExpression:
+			symbol = c.symbolTable.Define(child_node.Left.(*ast.Identifier).Value)
+			set_type = code.SetTypeArray
+			err := c.Compile(child_node.Index)
+			if err != nil {
+				return nil
+			}
+
+		}
 
 		err := c.Compile(node.Value)
 		if err != nil {
@@ -389,9 +442,20 @@ func (c *Compiler) Compile(node ast.Node) error {
 		}
 
 		if symbol.Scope == GlobalScope {
-			c.emit(code.OpSetGlobal, symbol.Index)
+			switch set_type {
+			case code.SetTypeVar:
+				c.emit(code.OpSetGlobal, int(code.SetTypeVar), symbol.Index)
+			case code.SetTypeArray:
+				c.emit(code.OpSetGlobal, int(code.SetTypeArray), symbol.Index)
+
+			}
 		} else {
-			c.emit(code.OpSetLocal, symbol.Index)
+			switch set_type {
+			case code.SetTypeVar:
+				c.emit(code.OpSetLocal, symbol.Index)
+			case code.SetTypeArray:
+				c.emit(code.OpSetLocal, symbol.Index)
+			}
 		}
 	case *ast.ForStatement:
 		// loopStart := len(c.currentInstructions())
@@ -431,6 +495,20 @@ func (c *Compiler) Compile(node ast.Node) error {
 		// instruction := c.leaveScope()
 		// c.scopes[c.scopeIndex].instruction = append(c.scopes[c.scopeIndex].instruction, instruction...)
 		// fmt.Println(instruction)
+
+	case *ast.ClassStmt:
+		c.compilerCtx.isCompClass = true
+		symbol := c.symbolTable.Define(node.Name.Value)
+		//emit OP_CLASS create a class
+		c.emit(code.OpClass)
+		c.emit(code.OpDefineClass, symbol.Index)
+
+		err := c.Compile(node.Body)
+		if err != nil {
+			return err
+		}
+		c.emit(code.OpPop)
+		c.compilerCtx.isCompClass = false
 	} //switch end
 	return nil
 }
@@ -545,6 +623,10 @@ func (c *Compiler) replaceLastOpPopToOpReturn() {
 func (c *Compiler) loadSymbol(s Symbol) {
 	switch s.Scope {
 	case GlobalScope:
+		if c.compilerCtx.infixDot {
+			c.emit(code.OpGetProperty, s.Index)
+			return
+		}
 		c.emit(code.OpGetGlobal, s.Index)
 	case LocalScope:
 		c.emit(code.OpGetLocal, s.Index)

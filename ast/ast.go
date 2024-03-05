@@ -123,19 +123,19 @@ func (w *WhileStatement) String() string {
 }
 
 type AssignExpression struct {
-	// Token token.Token
-	Name  *Identifier
+	Token token.Token
+	Left  Expression
 	Value Expression
 }
 
-func (assign *AssignExpression) statementNode()  {}
+// func (assign *AssignExpression) statementNode()  {}
 func (assign *AssignExpression) expressionNode() {}
 func (assign *AssignExpression) TokenLiteral() string {
-	return assign.Name.TokenLiteral()
+	return assign.Left.TokenLiteral()
 }
 func (assign *AssignExpression) String() string {
 	var out bytes.Buffer
-	out.WriteString(assign.Name.String())
+	out.WriteString(assign.Left.String())
 	out.WriteString(" = ")
 
 	if assign.Value != nil {
@@ -143,6 +143,19 @@ func (assign *AssignExpression) String() string {
 	}
 	out.WriteString(";")
 	return out.String()
+}
+
+type ThisLiteral struct {
+	Token token.Token
+	Value string
+}
+
+func (t *ThisLiteral) expressionNode() {}
+func (t *ThisLiteral) TokenLiteral() string {
+	return t.Token.Literal
+}
+func (t *ThisLiteral) String() string {
+	return "this"
 }
 
 type ForStatement struct {
@@ -343,22 +356,22 @@ func (fl *FunctionLiteral) String() string {
 //	};
 //
 // let now = NOW();
-type ClassLiteral struct {
+type ClassStmt struct {
 	Token token.Token     // token CLASS
 	Body  *BlockStatement // block statement
-	Name  string          // let binding  name
+	Name  *Identifier     // let binding  name
 }
 
-func (class *ClassLiteral) expressionNode() {}
-func (class *ClassLiteral) TokenLiteral() string {
+func (class *ClassStmt) statementNode() {}
+func (class *ClassStmt) TokenLiteral() string {
 	return class.Token.Literal
 }
-func (class *ClassLiteral) String() string {
+func (class *ClassStmt) String() string {
 	var out bytes.Buffer
 
 	out.WriteString(" ")
 	out.WriteString(class.TokenLiteral())
-	if class.Name != "" {
+	if class.Name.Value != "" {
 		out.WriteString(fmt.Sprintf("<%s>", class.Name))
 	}
 	out.WriteString("{ ")

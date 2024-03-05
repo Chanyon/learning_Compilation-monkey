@@ -31,6 +31,7 @@ const (
 	MACRO_OBJ             = "MACRO"
 	COMPILER_FUNCTION_OBJ = "COMPILER_FUNCTION_OBJ"
 	CLOSURE_OBJ           = "CLOSURE_OBJ"
+	CLASS_OBJ             = "CLASS_OBJ"
 )
 
 // 值系统
@@ -291,6 +292,7 @@ type CompiledFunction struct {
 	Instructions  code.Instruction
 	NumLocals     int
 	NumParameters int
+	Name          string
 }
 
 func (cf *CompiledFunction) Type() ObjectType {
@@ -310,4 +312,17 @@ func (cl *Closure) Type() ObjectType {
 }
 func (cl *Closure) Inspect() string {
 	return fmt.Sprintf("Closure[%p]", cl)
+}
+
+type Class struct {
+	Name    string
+	Methods map[string]Object
+	Fields  map[string]Object
+}
+
+func (class *Class) Type() ObjectType {
+	return CLASS_OBJ
+}
+func (class *Class) Inspect() string {
+	return fmt.Sprintf("Class[%p]", class)
 }

@@ -42,6 +42,7 @@ const (
 	LBRACKET  = "["
 	RBRACKET  = "]"
 	COLON     = ":"
+	DOT       = "."
 	// 关键字
 	FUNCTION = "FUNCTION"
 	LET      = "LET"

@@ -485,32 +485,35 @@ func TestFunctionParameterParsing(t *testing.T) {
 	}
 }
 
-func TestClassLiteral(t *testing.T) {
-	input := `class {
-			let bar = fn(){ 1 };
-		};`
+func TestClassStatement(t *testing.T) {
+	input := `
+		class Foo {
+			this.a = 1;
+			let bar = fn(){
+				return this;
+			}
+		}
+		let foo = Foo();
+		foo.bar();
+		`
 	l := lexer.New(input)
 	p := New(l)
 	program := p.ParserProgram()
 	checkParserErrors(t, p)
 
-	if len(program.Statements) != 1 {
+	if len(program.Statements) != 3 {
 		t.Fatalf("program.Statements does not contain %d statements. got='%d'",
 			1, len(program.Statements))
 	}
-	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
+	stmt, ok := program.Statements[0].(*ast.ClassStmt)
 	if !ok {
 		t.Fatalf("program.Statements[0] is not ast.ExpressionStatement. got=%T",
 			program.Statements[0])
 	}
-	class, ok := stmt.Expression.(*ast.ClassLiteral)
-	if !ok {
-		t.Fatalf("stmt.Expression is not ast.ClassLiteral. got=%T", stmt.Expression)
-	}
-
-	if len(class.Body.Statements) != 1 {
+	body := stmt.Body.Statements
+	if len(body) != 2 {
 		t.Fatalf("class.Body.Statements does not contain %d statements. got='%d'",
-			1, len(class.Body.Statements))
+			1, len(body))
 	}
 }
 
@@ -816,37 +819,6 @@ func TestWhileStatement(t *testing.T) {
 	}
 }
 
-func TestAssignStatement(t *testing.T) {
-	input := `foo = 6;`
-	l := lexer.New(input) //token
-	p := New(l)           //parser
-	program := p.ParserProgram()
-	checkParserErrors(t, p)
-
-	if len(program.Statements) != 1 {
-		t.Fatalf("program.Statements does not statements %d got=%d",
-			1, len(program.Statements))
-	}
-
-	stmt, ok := program.Statements[0].(*ast.ExpressionStatement)
-	if !ok {
-		t.Fatalf("program.Statements[0] is not ast.AssignStatement got='%T'",
-			program.Statements[0])
-	}
-
-	exp, ok := stmt.Expression.(*ast.AssignExpression)
-	if !ok {
-		t.Fatalf("expression is not ast.AssignExpression got='%T'",
-			exp)
-	}
-	if !testIdentifier(t, exp.Name, "foo") {
-		return
-	}
-	if !testIntegerLiteral(t, exp.Value, 6) {
-		return
-	}
-}
-
 func TestForStatement(t *testing.T) {
 	input := `for (let a = 1; 1 < 2; a = 2) { 3; }`
 	l := lexer.New(input) //token
@@ -879,7 +851,7 @@ func TestForStatement(t *testing.T) {
 		t.Fatalf("expression is not ast.AssignExpression got='%T'",
 			exp)
 	}
-	if !testIdentifier(t, exp.Name, "a") {
+	if !testIdentifier(t, exp.Left, "a") {
 		return
 	}
 	if !testIntegerLiteral(t, exp.Value, 2) {

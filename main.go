@@ -18,12 +18,13 @@ func main() {
 	if len(filePath) != 2 {
 		fmt.Printf("Hello %s! This is the Monkey programming language!\n", user.Username)
 		fmt.Printf("Feel free to type in commands\n")
-		// repl.StartVM(os.Stdin, os.Stdout)
+		repl.StartVM(os.Stdin, os.Stdout)
 		// codegen
-		fmt.Println("input filename!")
+		// fmt.Println("input filename!")
 	}
-	// repl.StartFile(filePath[1])
+	repl.StartFile(filePath[1])
 	//codegen
-	repl.StartWriteFile(filePath[1])
+	// repl.StartWriteFile(filePath[1])
+	// eval
 	// repl.StartEval(os.Stdin, os.Stdout)
 }
